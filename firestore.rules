@@ -1,0 +1,135 @@
+rules_version = '2';
+
+
+// Planit — Firestore security rules.
+//
+// Tenant isolation is enforced on the server as well as in the client query:
+// a task document is only readable/writable when its `userId` field matches the
+// signed-in uid, so a forged query can never leak another account's data.
+//
+// V2 adds two editable fields — `priority` (low | medium | high) and `dueDate`
+// (an ISO "YYYY-MM-DD" string or null). Both are validated here by type/value,
+// and the update rule still restricts which keys a client may touch.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function ownsExistingTask() {
+      return isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // Both V2 fields are optional on *update* so documents written before V2
+    // (which have neither key) can still be completed, renamed or deleted.
+    // When the key is present it is always validated by value.
+    function hasValidPriority() {
+      return !('priority' in request.resource.data)
+        || request.resource.data.priority in ['low', 'medium', 'high'];
+    }
+
+    function hasValidDueDate() {
+      return !('dueDate' in request.resource.data)
+        || request.resource.data.dueDate == null
+        || (request.resource.data.dueDate is string
+            && request.resource.data.dueDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'));
+    }
+
+    // On create the app always writes both fields, so they are mandatory there.
+    function isValidPriority() {
+      return request.resource.data.priority in ['low', 'medium', 'high'];
+    }
+
+    function isValidDueDate() {
+      return request.resource.data.dueDate == null
+        || (request.resource.data.dueDate is string
+            && request.resource.data.dueDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'));
+    }
+
+    // ---------------------------------------------------------------------
+    // V3 fields: `description` (long notes), `tags` (category labels) and
+    // `isArchived` (soft hide). Same two-tier approach as the V2 fields: the
+    // key may be absent on *update* (so documents written before V3 stay
+    // editable), but is always validated by type/value whenever present.
+    //
+    // Note on `tags`: security rules cannot iterate a list, so we validate the
+    // container only — a list of at most 5 entries. The app additionally
+    // enforces "strings, trimmed, de-duplicated, <= 24 chars" in lib/tags.ts.
+    // ---------------------------------------------------------------------
+    function hasValidDescription() {
+      return !('description' in request.resource.data)
+        || request.resource.data.description == null
+        || (request.resource.data.description is string
+            && request.resource.data.description.size() <= 2000);
+    }
+
+    function hasValidTags() {
+      return !('tags' in request.resource.data)
+        || (request.resource.data.tags is list
+            && request.resource.data.tags.size() <= 5);
+    }
+
+    function hasValidIsArchived() {
+      return !('isArchived' in request.resource.data)
+        || request.resource.data.isArchived is bool;
+    }
+
+    function isValidDescription() {
+      return request.resource.data.description == null
+        || (request.resource.data.description is string
+            && request.resource.data.description.size() <= 2000);
+    }
+
+    function isValidTags() {
+      return request.resource.data.tags is list
+        && request.resource.data.tags.size() <= 5;
+    }
+
+    function isValidIsArchived() {
+      return request.resource.data.isArchived is bool;
+    }
+
+    match /tasks/{taskId} {
+
+      // Read: only the owner.
+      allow read: if ownsExistingTask();
+
+      // Create: the payload must be stamped with the caller's own uid and may
+      // only contain the fields the app writes.
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.keys().hasOnly(
+             ['title', 'userId', 'isCompleted', 'priority', 'dueDate',
+              'description', 'tags', 'isArchived', 'createdAt', 'updatedAt'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 140
+        && request.resource.data.isCompleted == false
+        && isValidPriority()
+        && isValidDueDate()
+        && isValidDescription()
+        && isValidTags()
+        && isValidIsArchived();
+
+      // Update: ownership can never be transferred, and only these fields move.
+      allow update: if ownsExistingTask()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.diff(resource.data)
+             .affectedKeys().hasOnly(
+               ['title', 'isCompleted', 'priority', 'dueDate',
+                'description', 'tags', 'isArchived', 'updatedAt'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 140
+        && hasValidPriority()
+        && hasValidDueDate()
+        && hasValidDescription()
+        && hasValidTags()
+        && hasValidIsArchived();
+
+      // Delete: only the owner.
+      allow delete: if ownsExistingTask();
+    }
+  }
+}

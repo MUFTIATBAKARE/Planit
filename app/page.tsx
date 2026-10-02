@@ -1,69 +1,234 @@
-import Image from "next/image";
+import type { Metadata } from "next";
+import Link from "next/link";
+import {
+  Accessibility,
+  Calendar,
+  CircleCheck,
+  Radio,
+  ShieldCheck,
+  Zap,
+} from "lucide-react";
+import { LandingHero } from "@/components/landing/LandingHero";
+import { SiteFooter } from "@/components/layout/SiteFooter";
+import { SiteHeader } from "@/components/layout/SiteHeader";
+import { buttonStyles } from "@/components/ui/Button";
 
-export default function Home() {
+const landingTitle = "Planit — Real-Time Task Management for Focused Teams";
+const landingDescription =
+  "Capture tasks in a keystroke, complete them with one tap, and sync every change instantly with Firebase. Planit is a fast, accessible, real-time to-do app for individuals and teams.";
+
+export const metadata: Metadata = {
+  title: { absolute: landingTitle },
+  description: landingDescription,
+  keywords: [
+    "real-time to-do app",
+    "task management",
+    "productivity",
+    "firebase firestore tasks",
+    "team task list",
+    "planit",
+  ],
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: "Planit",
+    title: landingTitle,
+    description: landingDescription,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: landingTitle,
+    description: landingDescription,
+  },
+};
+
+const FEATURES = [
+  {
+    icon: Radio,
+    title: "Real-time by default",
+    description:
+      "Every change streams out of Firestore through onSnapshot, so the list you are looking at is never stale.",
+    surface: "bg-chip-indigo",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Private to your account",
+    description:
+      "Tasks are always queried with userId equality scoping, so one account can never read another account's data.",
+    surface: "bg-chip-teal",
+  },
+  {
+    icon: Zap,
+    title: "Kinetic capture",
+    description:
+      "One input bar, one keystroke. New tasks are persisted instantly with addDoc() and appear immediately.",
+    surface: "bg-chip-coral",
+  },
+  {
+    icon: CircleCheck,
+    title: "One-tap completion",
+    description:
+      "Tick the checkbox and the isCompleted boolean is written straight to the database.",
+    surface: "bg-chip-mint",
+  },
+  {
+    icon: Calendar,
+    title: "Priorities & due dates",
+    description:
+      "Give every task a Low/Medium/High level and a deadline — stored as plain strings in Firestore.",
+    surface: "bg-chip-indigo",
+  },
+  {
+    icon: Accessibility,
+    title: "Accessible by default",
+    description:
+      "Semantic markup, visible focus rings, 44px touch targets and polite live regions throughout.",
+    surface: "bg-chip-teal",
+  },
+] as const;
+
+const STEPS = [
+  {
+    step: "01",
+    title: "Create your account",
+    description:
+      "Sign up in seconds with an email and password — Firebase Auth keeps the session secure across reloads.",
+  },
+  {
+    step: "02",
+    title: "Capture what matters",
+    description:
+      "Type a task into the bar and press Enter. It is written to Firestore with a server-generated timestamp.",
+  },
+  {
+    step: "03",
+    title: "Finish and tidy up",
+    description:
+      "Tick items off with an animated strike-through, then delete whatever no longer deserves your attention.",
+  },
+] as const;
+
+export default function LandingPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <>
+      <SiteHeader />
+
+      <main id="main-content" className="flex-1">
+        <LandingHero />
+
+        <section
+          id="features"
+          aria-labelledby="features-heading"
+          className="border-t border-border-light bg-surface-card-light dark:border-border-dark dark:bg-surface-card-dark"
+        >
+          <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-wide text-accent-strong dark:text-accent-primary">
+                Features
+              </p>
+              <h2
+                id="features-heading"
+                className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl"
+              >
+                Everything you need, nothing more
+              </h2>
+              <p className="mt-4 text-base leading-relaxed">
+                Planit stays deliberately narrow: a fast capture bar, a live
+                list, and a database that never lets you down.
+              </p>
+            </div>
+
+            <ul
+              role="list"
+              className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              {FEATURES.map(({ icon: Icon, title, description, surface }) => (
+                <li
+                  key={title}
+                  className="rounded-card border border-border-light bg-surface-card-light p-6 shadow-card transition-shadow hover:shadow-card-hover dark:border-border-dark dark:bg-surface-card-dark"
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`grid size-11 place-items-center rounded-full text-text-header-light shadow-sm ${surface}`}
+                  >
+                    <Icon className="size-5" />
+                  </span>
+                  <h3 className="mt-4 text-base font-semibold">{title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed">{description}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section
+          id="how-it-works"
+          aria-labelledby="how-it-works-heading"
+          className="border-t border-border-light dark:border-border-dark"
+        >
+          <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+            <h2
+              id="how-it-works-heading"
+              className="text-3xl font-semibold tracking-tight sm:text-4xl"
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+              From empty list to done in three steps
+            </h2>
+
+            <ol className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
+              {STEPS.map(({ step, title, description }) => (
+                <li
+                  key={step}
+                  className="rounded-card border border-border-light bg-surface-card-light p-6 shadow-card dark:border-border-dark dark:bg-surface-card-dark"
+                >
+                  <span className="inline-flex items-center rounded-full bg-accent-primary/30 px-3 py-1 text-xs font-bold text-accent-strong dark:text-accent-primary">
+                    {step}
+                  </span>
+                  <h3 className="mt-4 text-base font-semibold">{title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed">{description}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section
+          aria-labelledby="cta-heading"
+          className="border-t border-border-light bg-surface-card-light dark:border-border-dark dark:bg-surface-card-dark"
+        >
+          <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+            <div className="rounded-panel border border-border-light bg-app-bg-light px-6 py-12 text-center sm:px-12 dark:border-border-dark dark:bg-app-bg-dark">
+              <h2
+                id="cta-heading"
+                className="text-3xl font-semibold tracking-tight sm:text-4xl"
+              >
+                Start your list in under a minute
+              </h2>
+              <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed">
+                Create a free account and your dashboard is ready instantly — no
+                setup, no credit card, no clutter.
+              </p>
+              <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+                <Link
+                  href="/login"
+                  className={buttonStyles("primary", "lg", "w-full sm:w-auto")}
+                >
+                  Create free account
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className={buttonStyles("secondary", "lg", "w-full sm:w-auto")}
+                >
+                  Go to dashboard
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
-    </div>
+
+      <SiteFooter />
+    </>
   );
 }
+

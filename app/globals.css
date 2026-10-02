@@ -1,26 +1,153 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Class-based dark mode. The `.dark` class is placed on <html> by the
+ * no-flash script in app/layout.tsx, which keeps the whole app theme-ready.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* ==========================================================================
+   * ACCENT — extracted from design/dashboard.svg by pixel sampling.
+   * The SVG is a flattened Figma export, so the hexes below are the real brand
+   * values read straight out of its raster data:
+   *
+   *   #5A56E0 — "ADD NEW TASK" hero button, progress + chart fills
+   *   #5858f4 — active nav text and the avatar gradient
+   *   #6164cf — the selected calendar day (solid indigo)
+   *   #f1f0fe — the active nav pill background (soft tint)
+   * ========================================================================== */
+  --color-accent-primary: #8280ff; /* decorative + large fills */
+  --color-accent-strong: #5A56E0; 
+  --color-accent-deep: #6164cf; /* selected / pressed states */
+  --color-accent-fg: #ffffff; /* content sitting on an accent-strong fill */
+  --color-accent-soft: #f1f0fe; /* tinted surfaces (active nav pill) */
+
+  /* ==========================================================================
+   * ADAPTIVE BASE SURFACES
+   * Light values are sampled from the reference (canvas #EFEFEF, white cards,
+   * hairline #E7E7E7 borders). Dark values keep the mandated midnight palette,
+   * because the reference artwork only ships a light theme.
+   * ========================================================================== */
+  --color-app-bg-light: #efefef;
+  --color-app-bg-dark: #020617;
+
+  --color-surface-card-light: #ffffff;
+  --color-surface-card-dark: #0f172a;
+
+  --color-text-header-light: #0f172a;
+  --color-text-header-dark: #f8fafc;
+
+  --color-border-light: #e7e7e7;
+  --color-border-dark: #1e293b;
+
+  /* ===== Pastel status chips (the reference's four-card stat row) ===== */
+  --color-chip-indigo: #8280ff;
+  --color-chip-teal: #a7d0d6;
+  --color-chip-coral: #f6bbb7;
+  --color-chip-mint: #a4edc0;
+
+  /* ===== Priority levels. Every value is AA as text, and each one is always
+     paired with a written label — colour is never the only indicator. ===== */
+  --color-priority-low: #047857;
+  --color-priority-low-soft: #d1fae5;
+  --color-priority-low-dark: #6ee7b7;
+
+  --color-priority-medium: #b45309;
+  --color-priority-medium-soft: #fef3c7;
+  --color-priority-medium-dark: #fcd34d;
+
+  --color-priority-high: #dc2626;
+  --color-priority-high-soft: #fee2e2;
+  --color-priority-high-dark: #fca5a5;
+
+  /* ===== Support tokens (WCAG 2.1 AA contrast) ===== */
+  --color-text-body-light: #334155;
+  --color-text-body-dark: #cbd5e1;
+  --color-text-muted-light: #64748b;
+  --color-text-muted-dark: #94a3b8;
+
+  --color-danger: #dc2626;
+  --color-danger-fg: #ffffff;
+  --color-success: #047857;
+
+  /* ===== Shape / elevation. Soft, flat and generously rounded like the
+     reference: 16px cards with pill-shaped controls. ===== */
+  --radius-card: 1rem; /* rounded-card  — task rows, cards */
+  --radius-panel: 1.5rem; /* rounded-panel — hero panels, drawers, modals */
+
+  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04),
+    0 8px 24px -14px rgb(15 23 42 / 0.18);
+  --shadow-card-hover: 0 2px 6px -1px rgb(15 23 42 / 0.08),
+    0 20px 44px -20px rgb(15 23 42 / 0.28);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Poppins — the geometric, rounded sans the reference artwork is set in. */
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo,
+    monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-app-bg-light);
+    color: var(--color-text-body-light);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  html.dark body {
+    background-color: var(--color-app-bg-dark);
+    color: var(--color-text-body-dark);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--color-text-header-light);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+
+  html.dark h1,
+  html.dark h2,
+  html.dark h3,
+  html.dark h4,
+  html.dark h5,
+  html.dark h6 {
+    color: var(--color-text-header-dark);
+  }
+
+  ::selection {
+    background-color: var(--color-accent-primary);
+    color: var(--color-accent-fg);
+  }
+
+  /* Respect users who ask for less motion — every Framer Motion transition is
+     additionally gated through `useReducedMotion()` in the components. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
